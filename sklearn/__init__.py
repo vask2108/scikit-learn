@@ -20,10 +20,28 @@ import importlib as _importlib
 import logging
 import os
 import random
+import platform
 
 from ._config import config_context, get_config, set_config
 
 logger = logging.getLogger(__name__)
+
+# Add LLVM bin path for clang-built extensions on WoA if it exists
+if platform.system() == "Windows" and platform.machine().lower() == "arm64":
+    # Try to detect LLVM's bin path
+    llvm_bin_path = os.environ.get("LLVM_BIN_PATH")
+
+    # Fallback to general typical path if env var is not set
+    if not llvm_bin_path:
+        default_path = r"C:\Program Files\LLVM\bin"
+        if os.path.isdir(default_path):
+            llvm_bin_path = default_path
+
+    if llvm_bin_path and os.path.isdir(llvm_bin_path):
+        os.add_dll_directory(llvm_bin_path)
+    else:
+        logger.warning("WARNING:LLVM bin directory not found.If using Clang-built extensions on Windows ARM64, "
+            "set LLVM_BIN_PATH environment variable to your LLVM bin directory.")
 
 
 # PEP0440 compatible formatted version, see:

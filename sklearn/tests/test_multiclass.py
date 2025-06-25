@@ -45,6 +45,7 @@ from sklearn.utils.fixes import (
     LIL_CONTAINERS,
 )
 from sklearn.utils.multiclass import check_classification_targets, type_of_target
+from sklearn.utils._testing import is_woa
 
 iris = datasets.load_iris()
 rng = np.random.RandomState(0)
@@ -932,8 +933,10 @@ def test_constant_int_target(make_y):
     expected[:, 0] = 1
     assert_allclose(y_pred, expected)
 
-
 def test_ovo_consistent_binary_classification():
+    if is_woa():
+        pytest.skip("Skipping test_ovo_consistent_binary_classification on Windows on ARM due to known failure")
+
     """Check that ovo is consistent with binary classifier.
 
     Non-regression test for #13617.

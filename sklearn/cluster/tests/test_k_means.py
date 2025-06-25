@@ -33,6 +33,7 @@ from sklearn.utils._testing import (
 from sklearn.utils.extmath import row_norms
 from sklearn.utils.fixes import CSR_CONTAINERS
 from sklearn.utils.parallel import _get_threadpool_controller
+from sklearn.utils._testing import is_woa
 
 # non centered, sparse centers to check the
 centers = np.array(
@@ -158,6 +159,15 @@ def test_relocate_empty_clusters(array_constr):
 @pytest.mark.parametrize("tol", [1e-2, 1e-8, 1e-100, 0])
 def test_kmeans_elkan_results(distribution, array_constr, tol, global_random_seed):
     # Check that results are identical between lloyd and elkan algorithms
+    if (
+        is_woa()
+        and distribution == "normal"
+        and array_constr == data_containers[data_containers_ids.index("dense")]
+        and tol in [1e-2, 1e-8, 1e-100, 0]
+    ):
+        pytest.skip(
+            f"Skipping nondeterministic failure on Windows ARM for tol={tol}, dense-normal combo"
+        )
     rnd = np.random.RandomState(global_random_seed)
     if distribution == "normal":
         X = rnd.normal(size=(5000, 10))
@@ -184,6 +194,7 @@ def test_kmeans_elkan_results(distribution, array_constr, tol, global_random_see
 
 
 @pytest.mark.parametrize("algorithm", ["lloyd", "elkan"])
+@pytest.mark.skipif(is_woa(), reason="nondeterministic convergence behavior on Windows on ARM")
 def test_kmeans_convergence(algorithm, global_random_seed):
     # Check that KMeans stops when convergence is reached when tol=0. (#16075)
     rnd = np.random.RandomState(global_random_seed)

@@ -34,6 +34,12 @@ _global_c_args = cc.get_supported_arguments(
 )
 add_project_arguments(_global_c_args, language : 'c')
 
+# link clang_rt.builtins-aarch64.lib for Windows on ARM64 using Clang
+if host_machine.system() == 'windows' and host_machine.cpu_family() == 'aarch64' and cc.get_id() == 'clang-cl'
+  add_project_link_arguments('-DEFAULTLIB:C:\\Program Files\\LLVM\\lib\\clang\\20\\lib\\windows\\clang_rt.builtins-aarch64.lib', language : 'cpp')
+  add_project_link_arguments('-DEFAULTLIB:C:\\Program Files\\LLVM\\lib\\clang\\20\\lib\\windows\\clang_rt.builtins-aarch64.lib', language : 'c')
+endif
+
 # We need -lm for all C code (assuming it uses math functions, which is safe to
 # assume for scikit-learn). For C++ it isn't needed, because libstdc++/libc++ is
 # guaranteed to depend on it.

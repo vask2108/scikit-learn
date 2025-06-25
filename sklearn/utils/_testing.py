@@ -17,6 +17,7 @@ import tempfile
 import textwrap
 import unittest
 import warnings
+import platform
 from collections import defaultdict, namedtuple
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -69,6 +70,11 @@ __all__ = [
 ]
 
 SkipTest = unittest.case.SkipTest
+
+
+def is_woa():
+    """Return True if running on Windows on ARM64 (WoA)."""
+    return platform.machine().lower() == "arm64" and platform.system() == "Windows"
 
 
 def ignore_warnings(obj=None, category=Warning):

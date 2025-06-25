@@ -25,6 +25,7 @@ from sklearn.utils.fixes import (
     sp_version,
 )
 
+from sklearn.utils._testing import is_woa
 
 @pytest.mark.parametrize("est", (PolynomialFeatures, SplineTransformer))
 def test_polynomial_and_spline_array_order(est):
@@ -1171,10 +1172,14 @@ def test_polynomial_features_behaviour_on_zero_degree(sparse_container):
 
 
 def test_sizeof_LARGEST_INT_t():
+    # On Windows, MSVC doesn't support int128; Clang/LLVM does.
+    # WoA + Clang is known to support 128-bit integers
+    if is_woa():
+        expected_size = 16
     # On Windows, scikit-learn is typically compiled with MSVC that
     # does not support int128 arithmetic (at the time of writing):
     # https://stackoverflow.com/a/6761962/163740
-    if sys.platform == "win32" or (
+    elif sys.platform == "win32" or (
         sys.maxsize <= 2**32 and sys.platform != "emscripten"
     ):
         expected_size = 8

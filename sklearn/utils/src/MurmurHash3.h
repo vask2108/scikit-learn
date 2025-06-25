@@ -13,7 +13,11 @@
 #if defined(_MSC_VER)
 
 typedef unsigned char uint8_t;
+#if defined(__clang__) && defined(_M_ARM64)
+typedef unsigned _int32 uint32_t;
+#else
 typedef unsigned long uint32_t;
+#endif
 typedef unsigned __int64 uint64_t;
 
 // Other compilers

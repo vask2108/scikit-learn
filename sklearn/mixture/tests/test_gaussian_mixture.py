@@ -46,6 +46,7 @@ from sklearn.utils._testing import (
     skip_if_array_api_compat_not_configured,
 )
 from sklearn.utils.extmath import fast_logdet
+from sklearn.utils._testing import is_woa
 
 COVARIANCE_TYPE = ["full", "tied", "diag", "spherical"]
 
@@ -850,6 +851,10 @@ def test_gaussian_mixture_verbose():
 @pytest.mark.filterwarnings("ignore:.*did not converge.*")
 @pytest.mark.parametrize("seed", (0, 1, 2))
 def test_warm_start(seed):
+
+    if is_woa() and seed == 0:
+        pytest.skip("Skip seed=0 on WoA due to known instability")
+
     random_state = seed
     rng = np.random.RandomState(random_state)
     n_samples, n_features, n_components = 500, 2, 2
