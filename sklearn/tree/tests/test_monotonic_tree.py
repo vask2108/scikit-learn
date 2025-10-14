@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
 
+pytestmark = pytest.mark.order(20)
+
 from sklearn.datasets import make_classification, make_regression
 from sklearn.ensemble import (
     ExtraTreesClassifier,

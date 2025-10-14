@@ -12,6 +12,7 @@ on:
       - main
       # Release branches
       - "[0-9]+.[0-9]+.X"
+      - woa_test_issue_debug
   pull_request:
     branches:
       - main
@@ -28,7 +29,7 @@ jobs:
   check_build_trigger:
     name: Check build trigger
     runs-on: ubuntu-latest
-    if: github.repository == 'scikit-learn/scikit-learn'
+    if: github.repository == 'scikit-learn/scikit-learn' || github.repository == 'vask2108/scikit-learn'
     outputs:
       build: ${{ steps.check_build_trigger.outputs.build }}
 
@@ -228,6 +229,51 @@ jobs:
         if: ${{ startsWith(matrix.platform_id, 'macosx') }}
         with:
           miniforge-version: latest
+
+      # Only run on Windows ARM
+      - name: Ensure CDB installed
+        if: startsWith(matrix.os, 'windows-11-arm')
+        shell: pwsh
+        run: |
+          $cdb_paths = @(
+            "C:\Program Files (x86)\Windows Kits\10\Debuggers\arm64\cdb.exe",
+            "C:\Program Files\Windows Kits\10\Debuggers\arm64\cdb.exe"
+          )
+          $found = $false
+          foreach ($p in $cdb_paths) {
+              if (Test-Path $p) {
+                  Write-Host "CDB found at $p"
+                  $found = $true
+                  break
+              }
+          }
+
+          if (-not $found) {
+              Write-Host "CDB not found, installing Debugging Tools for Windows..."
+              $url = "https://aka.ms/vs/17/release/SDKSetup.exe"
+              $installer = "$env:TEMP\SDKSetup.exe"
+              Invoke-WebRequest -Uri $url -OutFile $installer
+              Start-Process -FilePath $installer -ArgumentList "/features OptionId.DebuggingTools /quiet /norestart" -Wait
+
+              if (Test-Path "C:\Program Files (x86)\Windows Kits\10\Debuggers\arm64\cdb.exe") {
+                  Write-Host "CDB successfully installed."
+              } else {
+                  Write-Error "CDB installation failed."
+                  exit 1
+              }
+          }
+
+      - name: Show CDB version
+        if: startsWith(matrix.os, 'windows-11-arm ')
+        shell: pwsh
+        run: |
+          $cdb = "C:\Program Files (x86)\Windows Kits\10\Debuggers\arm64\cdb.exe"
+          if (Test-Path $cdb) {
+              & $cdb -version
+          } else {
+              Write-Host "CDB not found after install."
+          }
+
 
       - name: Build and test wheels
         env:
